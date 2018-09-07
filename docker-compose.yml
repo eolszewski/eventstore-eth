@@ -1,17 +1,30 @@
 version: '2'
 services:
 
-  testrpc:
-    environment:
-      - RPC_HOST=testrpc
-    image: trufflesuite/ganache-cli
-    ports:
-      - "8545:8545"
+  # testrpc:
+  #   environment:
+  #     - RPC_HOST=testrpc
+  #   image: trufflesuite/ganache-cli
+  #   ports:
+  #     - "8545:8545"
 
-  ipfs:
-    image: ipfs/go-ipfs
+  # ipfs:
+  #   image: ipfs/go-ipfs
+  #   ports:
+  #    - "8080:8080"
+  #    - "5001:5001"
+  #    - "4001:4001"
+
+  factom:
+    image: factominc/factomd:v5.0.0-alpine
+    entrypoint:
+    - /go/bin/factomd
+    - -network=LOCAL
     ports:
-     - "8080:8080"
-     - "5001:5001"
-     - "4001:4001"
+     - "8088:8088"
+
+  factom-wallet:
+    image: factominc/factom-walletd
+    ports:
+     - "8089:8089"
     
