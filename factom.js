@@ -1,6 +1,5 @@
 require('dotenv').config();
 
-const sleep = require('sleep');
 const { FactomCli, Entry, Chain } = require('factom');
 
 const cli = new FactomCli({
@@ -48,11 +47,14 @@ const mockData = [
   { extId: 'z', content: '26' }
 ];
 
-let moreMock = [];
 let chainId;
 
-async function buyEntryCredits(fSk, ecPk) {
-  const transaction = await cli.createEntryCreditPurchaseTransaction(fSk, ecPk, 1000);
+async function buyEntryCredits(fSk, ecPk, amount) {
+  console.log('fSk: ', fSk);
+  console.log('ecPk: ', ecPk);
+  console.log('amount: ', amount);
+  console.log('cli: ', cli.factomd.httpCli.defaults.baseURL);
+  const transaction = await cli.createEntryCreditPurchaseTransaction(fSk, ecPk, amount);
   await cli.sendTransaction(transaction);
 }
 
@@ -62,13 +64,6 @@ async function addChain(ecSk, entry) {
   chainId = chain.id.toString('hex');
 
   await cli.add(chain, ecSk, { commitTimeout: 60, revealTimeout: 60 });
-}
-
-async function addEntries(ecSk, mockData, chainId) {
-  mockData.forEach(async mock => {
-    let e = await createEntry(mock, chainId);
-    await cli.add(e, ecSk, { commitTimeout: 60, revealTimeout: 60 });
-  });
 }
 
 async function createEntry(data, chainId) {
@@ -88,37 +83,49 @@ async function createEntry(data, chainId) {
   return e;
 }
 
+async function addEntry(ecSk, data, chainId) {
+  let entry = await createEntry(data, chainId);
+  await cli.add(entry, ecSk, { commitTimeout: 60, revealTimeout: 60 });
+  return entry.hash().toString('hex');
+}
+
+async function addEntries(ecSk, mockData, chainId) {
+  return await Promise.all(
+    mockData.map(async mock => {
+      return await addEntry(ecSk, mock, chainId);
+    })
+  );
+}
+
 async function getEntry(hash) {
-  return cli.getEntry(hash);
+  return await cli.getEntry(hash);
 }
 
-async function getEntries() {
-  moreMock.slice(25).forEach(async mock => {
-    let e = await getEntry(mock.hash);
-    console.log('e: ', e);
-  })
-}
-
-async function generateMockHashes() {
-  await mockData.forEach(async mock => {
-    let e = await createEntry(mock, 'bf5d3affb73efd2ec6c36ad3112dd933efed63c4e1cbffcfa88e2759c144f2d8');
-    mock.hash = e.hash().toString('hex');
-    moreMock.push(mock);
-  });
+async function getEntries(hashes) {
+  return await Promise.all(
+    hashes.map(async hash => {
+      return await getEntry(hash);
+    })
+  );
 }
 
 async function bootstrap() {
-  console.log('buyEntryCredits');
-  await buyEntryCredits(fSk, ecPk);
-  console.log('addChain');
-  await addChain(ecSk, await createEntry(mockData[0], null));
-  console.log('addEntries');
-  await addEntries(ecSk, mockData.slice(25), chainId);
-  console.log('generateMockHashes');
-  await generateMockHashes();
-  sleep.sleep(60);
-  console.log('getEntries');
-  await getEntries();
+  console.log('cli: ', await cli.factomdApi('properties'));
+  console.log('\n\nbuyEntryCredits');
+  await buyEntryCredits(fSk, ecPk, 1000);
+  // console.log('\n\naddChain');
+  // await addChain(ecSk, await createEntry(mockData[0], null));
+  // console.log('\n\naddEntry');
+  // await addEntry(ecSk, mockData[1], chainId);
+  // console.log('\n\naddEntries');
+  // let hashes = await addEntries(ecSk, mockData.slice(1), chainId);
+  // console.log('hashes: ', hashes);
+  // console.log('\n\ngetEntries');
+  // let entries = await getEntries(hashes.slice(1));
+  // console.log('entries: ', entries);
+  // console.log('\n\ngetEntry');
+  // let entry = await getEntry(hashes[1].hash);
+  // console.log('entry: ', entry);
 }
 
 bootstrap();

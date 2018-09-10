@@ -3,7 +3,6 @@
  * @module src/decentralized-storage
  */
 
-require('dotenv').config();
 const hash = require('object-hash');
 const { FactomCli, Entry, Chain } = require('factom');
 
@@ -26,7 +25,7 @@ module.exports = class FactomAdapter {
    * @name version
    * @returns {Object} Factomd version object
    */
-  version() {
+  async version() {
     return await this.cli.factomdApi('properties');
   }
 
@@ -41,8 +40,9 @@ module.exports = class FactomAdapter {
    * @returns {String} Transaction ID
    */
   async buyEntryCredits(fSk, ecPk, amount) {
-    const transaction = await cli.createEntryCreditPurchaseTransaction(fSk, ecPk, amount);
-    return await cli.sendTransaction(transaction);
+    const transaction = await this.cli.createEntryCreditPurchaseTransaction(fSk, ecPk, amount);
+    console.log('we bought them!');
+    return await this.cli.sendTransaction(transaction);
   }
 
   /**
@@ -56,7 +56,7 @@ module.exports = class FactomAdapter {
    */
   async addChain(ecSk, entry) {
     let chain = new Chain(entry);
-    await cli.add(chain, ecSk);
+    await this.cli.add(chain, ecSk);
     return chain.id.toString('hex');
   }
 
@@ -113,7 +113,7 @@ module.exports = class FactomAdapter {
    * @returns {String} Factom hash of object
    */
   async addEntry(ecSk, entry) {
-    await cli.add(entry, ecSk);
+    await this.cli.add(entry, ecSk);
     return entry.hash().toString('hex');
   }
 
@@ -143,7 +143,7 @@ module.exports = class FactomAdapter {
    * @returns {Object} Factom Entry object
    */
   async getEntry(hash) {
-    return await cli.getEntry(hash);
+    return await this.cli.getEntry(hash);
   }
 
   /**
