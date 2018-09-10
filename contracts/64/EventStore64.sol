@@ -1,16 +1,16 @@
 pragma solidity ^0.4.24;
 pragma experimental "ABIEncoderV2";
 
-import "./EventStoreLib.sol";
+import "./EventStoreLib64.sol";
 
-contract EventStore {
+contract EventStore64 {
 
-    EventStoreLib.Storage store;
+    EventStoreLib64.Storage store;
 
     address public owner;
 
     function () public payable { revert("EventStore cannot accept ETH"); }
- 
+
     constructor() public {
         owner = tx.origin;
     }
@@ -20,17 +20,19 @@ contract EventStore {
         return store.events.length;
     }
 
-    function write(bytes32 key, bytes32 value) public {
-        EventStoreLib.write(
+    function write(bytes32 key1, bytes32 key2, bytes32 value1, bytes32 value2) public {
+        EventStoreLib64.write(
             store,
-            key,
-            value
+            key1,
+            key2,
+            value1,
+            value2
         );
     }
     
     function read(uint index) public view
-    returns (uint, address, bytes32, bytes32 ) {
-        return EventStoreLib.read(store, index);
+    returns (uint, address, bytes32, bytes32, bytes32, bytes32) {
+        return EventStoreLib64.read(store, index);
     }
 
     function destroy(address target) public {

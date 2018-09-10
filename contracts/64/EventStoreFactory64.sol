@@ -1,9 +1,9 @@
 pragma solidity ^0.4.24;
 pragma experimental "ABIEncoderV2";
 
-import "./EventStore.sol";
+import "./EventStore64.sol";
 
-contract EventStoreFactory {
+contract EventStoreFactory64 {
 
     address[] public eventStores;
 
@@ -17,7 +17,7 @@ contract EventStoreFactory {
 
     function createEventStore() public
     returns (address) {
-        EventStore eventStore = new EventStore();
+        EventStore64 eventStore = new EventStore64();
         eventStores.push(address(eventStore));
         return address(eventStore);
     }
@@ -28,7 +28,7 @@ contract EventStoreFactory {
     }
 
     function destroy(address target) public {
-        require(msg.sender == owner, "Only owner can destroy EventStoreFactory");
+        require(msg.sender == owner, "Only owner can destroy EventStore");
         selfdestruct(target);
     }
 }
